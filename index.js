@@ -1,11 +1,10 @@
 var express     = require('express');
-var mysql       = require('mysql');
 var app         = express();
 var bodyParser  = require('body-parser');
 
 var SavePassword = 'tutorials-raspberrypi.de';
 
-var connection = mysql.createConnection({
+var connection = mariadb.createConnection({
     host     : 'localhost',
     user     : 'root',
     password : 'your-password',
@@ -13,6 +12,35 @@ var connection = mysql.createConnection({
     debug    :  false,
     connectionLimit : 100
 });
+
+const mariadb = require('mariadb');
+const pool = mariadb.createPool({
+    host: 'localhost',
+    user:'root',
+    password: 'myPassword',
+    database : 'weather_station',
+    connectionLimit: 100
+});
+async function asyncFunction() {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        // get data from database
+        const rows = await conn.query('SELECT datum x, humidity y, sender_id, \'humidity\' `group` FROM temperature ' +
+            'UNION SELECT datum x, temp y, sender_id, \'temp\' `group` FROM temperature');
+        const results = JSON.stringify(rows);
+        res.render('index', { data: results });
+
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn) return conn.end();
+    }
+}
+
+
+
+
 
 app.set('port', (process.env.PORT || 8000))
 app.set('view engine', 'pug')
@@ -74,7 +102,7 @@ app.post('/esp8266_trigger', function(req, res){
 
     // save
     var query = connection.query('INSERT INTO temperature VALUES ' +
-        ' (DEFAULT, '+mysql.escape(sender_id)+', NOW(), '+temperature+', '+humidtiy+');', function (error, results, fields) {
+        ' (DEFAULT, '+mariadb.escape(sender_id)+', NOW(), '+temperature+', '+humidtiy+');', function (error, results, fields) {
         if (error) {
             res.json({"code" : 403, "status" : "Error in connection database"});
             return;
