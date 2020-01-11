@@ -1,18 +1,8 @@
-var express     = require('express');
-var app         = express();
-var bodyParser  = require('body-parser');
-
 var SavePassword = 'tutorials-raspberrypi.de';
 
-var connection = mariadb.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    password : 'your-password',
-    database : 'weather_station',
-    debug    :  false,
-    connectionLimit : 100
-});
-
+const express = require('express');
+const app = express();
+const bodyParser  = require('body-parser');
 const mariadb = require('mariadb');
 const pool = mariadb.createPool({
     host: 'localhost',
