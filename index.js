@@ -1,16 +1,18 @@
 var SavePassword = 'tutorials-raspberrypi.de';
 
 const express = require('express');
-const app = express();
-const bodyParser  = require('body-parser');
+const bodyParser = require('body-parser');
 const mariadb = require('mariadb');
+
+const app = express();
 const pool = mariadb.createPool({
     host: 'localhost',
-    user:'root',
+    user: 'root',
     password: 'myPassword',
-    database : 'weather_station',
+    database: 'weather_station',
     connectionLimit: 100
 });
+
 async function asyncFunction() {
     let conn;
     try {
@@ -18,8 +20,7 @@ async function asyncFunction() {
         // get data from database
         const rows = await conn.query('SELECT datum x, humidity y, sender_id, \'humidity\' `group` FROM temperature ' +
             'UNION SELECT datum x, temp y, sender_id, \'temp\' `group` FROM temperature');
-        const results = JSON.stringify(rows);
-        res.render('index', { data: results });
+        return JSON.stringify(rows);
 
     } catch (err) {
         throw err;
@@ -44,20 +45,12 @@ app.use(bodyParser.json());
 
 
 // Visualize
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
 
+    let results = asyncFunction();
 
-
-    // get data from database
-    connection.query('SELECT datum x, humidity y, sender_id, \'humidity\' `group` FROM temperature ' +
-        'UNION SELECT datum x, temp y, sender_id, \'temp\' `group` FROM temperature', function (error, results, fields) {
-        if (error) throw error;
-        results = JSON.stringify(results);
-
-        res.render('index', { data: results });
-    });
-
-})
+    res.render('index', {data: results});
+});
 
 // Send data
 app.post('/esp8266_trigger', function(req, res){
